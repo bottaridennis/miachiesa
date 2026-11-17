@@ -1,0 +1,127 @@
+{
+  "collections": {
+    "users": {
+      "description": "User profiles. Anyone can read. Users can create/update their own profile. Admin role is checked via email.",
+      "fields": {
+        "email": "string",
+        "displayName": "string",
+        "isAdmin": "boolean"
+      },
+      "rules": "read: true; create/update: if user is updating their own document, or if user is admin ('dennisbottari@gmail.com')."
+    },
+    "groups": {
+      "description": "Parish groups.",
+      "fields": {
+        "name": "string",
+        "type": "string",
+        "membersCount": "number",
+        "parish": "string",
+        "leaders": "array of objects {name, imageUrl, role}"
+      },
+      "rules": "read: true; write: if user is admin."
+    },
+    "group_members": {
+      "description": "Memberships for groups.",
+      "fields": {
+        "groupId": "string",
+        "userId": "string",
+        "userEmail": "string",
+        "isVerified": "boolean"
+      },
+      "rules": "read: true; create: if user is creating their own request (isVerified must be false) or user is admin; update/delete: if user is admin or user is deleting their own membership."
+    },
+    "notices": {
+      "description": "Notices and events published by groups or admin.",
+      "fields": {
+        "title": "string",
+        "content": "string",
+        "date": "string",
+        "category": "string",
+        "parish": "string",
+        "groupId": "string",
+        "authorId": "string",
+        "imageUrl": "string",
+        "attachmentUrl": "string"
+      },
+      "rules": "read: true; create: if user is admin, or user is a verified member of the group; update/delete: if user is admin or user is the author."
+    },
+    "messages": {
+      "description": "Service requests.",
+      "fields": {
+        "name": "string",
+        "email": "string",
+        "service": "string",
+        "message": "string",
+        "timestamp": "number"
+      },
+      "rules": "create: true; read/update/delete: if admin."
+    },
+    "events": {
+      "description": "Upcoming events.",
+      "fields": {
+        "title": "string",
+        "date": "string",
+        "time": "string",
+        "location": "string",
+        "group": "string",
+        "parish": "string",
+        "timestamp": "number"
+      },
+      "rules": "read: true; write: if admin."
+    },
+    "mass_times": {
+      "description": "Mass times.",
+      "fields": {
+        "day": "string",
+        "time": "string",
+        "type": "string",
+        "location": "string",
+        "parish": "string"
+      },
+      "rules": "read: true; write: if admin."
+    },
+    "liturgy": {
+      "description": "Daily readings.",
+      "fields": {
+        "date": "string",
+        "liturgicalColor": "string",
+        "firstReading": "object",
+        "psalm": "object",
+        "gospel": "object"
+      },
+      "rules": "read: true; write: if admin."
+    },
+    "forms": {
+      "description": "Forms for registrations.",
+      "fields": {
+        "title": "string",
+        "description": "string",
+        "deadline": "string",
+        "fields": "array",
+        "timestamp": "number"
+      },
+      "rules": "read: true; write: if admin."
+    },
+    "form_submissions": {
+      "description": "Submissions for forms.",
+      "fields": {
+        "formId": "string",
+        "userId": "string",
+        "userEmail": "string",
+        "data": "map",
+        "timestamp": "number"
+      },
+      "rules": "create: true; read: if owner or admin; update/delete: if admin."
+    },
+    "community_members": {
+      "description": "Active people in the community.",
+      "fields": {
+        "name": "string",
+        "role": "string",
+        "imageUrl": "string",
+        "timestamp": "number"
+      },
+      "rules": "read: true; write: if admin."
+    }
+  }
+}
