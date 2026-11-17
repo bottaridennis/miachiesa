@@ -20,19 +20,25 @@ export function Modal({
   size?: 'sm' | 'md' | 'lg';
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  // onClose arriva quasi sempre come funzione inline (nuova ad ogni render): la teniamo in un ref
+  // così l'effetto gira solo all'apertura. Prima girava ad ogni tasto premuto e riportava il focus
+  // sul primo campo del modulo.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCloseRef.current();
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    setTimeout(() => panelRef.current?.querySelector<HTMLElement>('input,textarea,select,button')?.focus(), 50);
+    const t = setTimeout(() => panelRef.current?.querySelector<HTMLElement>('input,textarea,select,button')?.focus(), 50);
     return () => {
+      clearTimeout(t);
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return (
     <AnimatePresence>
