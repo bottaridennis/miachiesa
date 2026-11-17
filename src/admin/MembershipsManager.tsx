@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { Check, UserCheck, X } from 'lucide-react';
 import { db } from '../lib/firebase';
@@ -48,7 +49,7 @@ export default function MembershipsManager() {
           ) : (
             <ListCard>
               {pending.map((m) => (
-                <Row key={m.id} m={m}>
+                <Fragment key={m.id}>{Row({ m, children: (
                   <div className="flex gap-2">
                     <Button size="sm" variant="danger" icon={<X size={15} />} onClick={() => remove('la richiesta', () => deleteDoc(doc(db, 'group_members', m.id)))}>
                       Rifiuta
@@ -57,7 +58,7 @@ export default function MembershipsManager() {
                       Approva
                     </Button>
                   </div>
-                </Row>
+                ) })}</Fragment>
               ))}
             </ListCard>
           )}
@@ -68,11 +69,11 @@ export default function MembershipsManager() {
           ) : (
             <ListCard>
               {verified.map((m) => (
-                <Row key={m.id} m={m}>
+                <Fragment key={m.id}>{Row({ m, children: (
                   <Button size="sm" variant="ghost" className="text-danger" onClick={() => remove("l'abilitazione", () => deleteDoc(doc(db, 'group_members', m.id)))}>
                     Revoca
                   </Button>
-                </Row>
+                ) })}</Fragment>
               ))}
             </ListCard>
           )}

@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import { Fragment, type ComponentType } from 'react';
 import {
   BarChart3, Bookmark, BookOpen, CalendarDays, Church, ClipboardCheck, ClipboardList, Inbox, LogIn, Megaphone, Settings2, Shield, SlidersHorizontal, UserCheck, UserRound, Users, UsersRound, ArrowLeft, type LucideIcon,
 } from 'lucide-react';
@@ -147,12 +147,12 @@ export default function AccountView({ section }: { section?: string }) {
             </div>
             <div>
               <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-subtle">Personale</p>
-              <NavList items={userSections} />
+              {NavList({ items: userSections })}
             </div>
             {adminSections.length > 0 && (
               <div>
                 <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-subtle">Amministrazione</p>
-                <NavList items={adminSections} />
+                {NavList({ items: adminSections })}
               </div>
             )}
           </div>
@@ -185,7 +185,7 @@ export default function AccountView({ section }: { section?: string }) {
               <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-subtle">Personale</h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {userSections.map((s) => (
-                  <Tile key={s.id} s={s} />
+                  <Fragment key={s.id}>{Tile({ s })}</Fragment>
                 ))}
               </div>
               {adminSections.length > 0 && (
@@ -193,7 +193,7 @@ export default function AccountView({ section }: { section?: string }) {
                   <h2 className="mb-3 mt-10 text-sm font-bold uppercase tracking-wider text-subtle">Amministrazione</h2>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {adminSections.map((s) => (
-                      <Tile key={s.id} s={s} />
+                      <Fragment key={s.id}>{Tile({ s })}</Fragment>
                     ))}
                   </div>
                 </>
