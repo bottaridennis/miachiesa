@@ -1,145 +1,187 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, BookOpen, Users, FileText } from 'lucide-react';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { collection } from 'firebase/firestore';
-import { db } from '../firebase';
-import { ViewMode } from '../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { collection, getDocs } from 'firebase/firestore';
+import { BookOpen, CalendarDays, ClipboardList, CornerDownLeft, FileText, Megaphone, Search, Users, X, type LucideIcon } from 'lucide-react';
+import { db } from '../lib/firebase';
+import { navigate, routes } from '../lib/router';
+import { NAV_ITEMS } from '../nav';
+import { formatDate, massDayLabel } from '../lib/format';
+import type { MassTime } from '../types';
 
-export default function GlobalSearch({ setCurrentView }: { setCurrentView: (view: any) => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const wrapperRef = useRef<HTMLDivElement>(null);
+interface Result {
+  key: string;
+  label: string;
+  sub?: string;
+  section: string;
+  icon: LucideIcon;
+  path: string;
+  haystack: string;
+}
 
-  const [servicesSnap] = useCollection(collection(db, 'service_options'));
-  const [groupsSnap] = useCollection(collection(db, 'groups'));
-  const [liturgySnap] = useCollection(collection(db, 'liturgy'));
-  const [massesSnap] = useCollection(collection(db, 'mass_times'));
-  const [eventsSnap] = useCollection(collection(db, 'events'));
-  const [noticesSnap] = useCollection(collection(db, 'notices'));
-  const [formsSnap] = useCollection(collection(db, 'forms'));
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+async function loadIndex(): Promise<Result[]> {
+  const get = async (name: string) => {
+    try {
+      return (await getDocs(collection(db, name))).docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    } catch {
+      return [];
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  };
+  const [notices, events, groups, masses, liturgy, forms, services] = await Promise.all(
+    ['notices', 'events', 'groups', 'mass_times', 'liturgy', 'forms', 'service_options'].map(get),
+  );
+  const out: Result[] = [];
+  notices.forEach((n) =>
+    out.push({ key: 'n' + n.id, label: n.title, sub: n.parish, section: 'Avvisi', icon: Megaphone, path: routes.notice(n.id), haystack: `${n.title} ${n.content} ${n.parish}` }),
+  );
+  events.forEach((e) =>
+    out.push({ key: 'e' + e.id, label: e.title, sub: `${formatDate(e.date, { day: 'numeric', month: 'short' })} · ${e.location}`, section: 'Eventi', icon: CalendarDays, path: routes.community, haystack: `${e.title} ${e.location} ${e.group} ${e.description ?? ''}` }),
+  );
+  groups.forEach((g) =>
+    out.push({ key: 'g' + g.id, label: g.name, sub: g.parish, section: 'Gruppi', icon: Users, path: routes.group(g.id), haystack: `${g.name} ${g.description ?? ''} ${g.parish}` }),
+  );
+  masses.forEach((m: MassTime) =>
+    out.push({ key: 'm' + m.id, label: `S. Messa ${massDayLabel(m)} ore ${m.time}`, sub: m.location, section: 'Messe', icon: BookOpen, path: routes.liturgy, haystack: `messa ${massDayLabel(m)} ${m.time} ${m.location} ${m.title ?? ''}` }),
+  );
+  liturgy.forEach((l) =>
+    out.push({ key: 'l' + l.id, label: `Letture: ${l.date}`, sub: l.gospel?.reference, section: 'Liturgia', icon: BookOpen, path: routes.liturgy, haystack: `letture vangelo ${l.date} ${l.gospel?.reference ?? ''}` }),
+  );
+  forms.forEach((f) =>
+    out.push({ key: 'f' + f.id, label: f.title, sub: `Scadenza ${formatDate(f.deadline, { day: 'numeric', month: 'short' })}`, section: 'Iscrizioni', icon: ClipboardList, path: routes.registration(f.id), haystack: `${f.title} ${f.description} iscrizione` }),
+  );
+  services.forEach((s) =>
+    out.push({ key: 's' + s.id, label: s.label, section: 'Segreteria', icon: FileText, path: routes.services, haystack: `${s.label} ${s.description ?? ''}` }),
+  );
+  return out.map((r) => ({ ...r, haystack: norm(r.haystack) }));
+}
 
-  const results: any[] = [];
+export function SearchTrigger({ onOpen, className }: { onOpen: () => void; className?: string }) {
+  return (
+    <button
+      onClick={onOpen}
+      className={`flex h-11 w-full items-center gap-3 rounded-xl border border-line bg-surface px-3.5 text-sm text-subtle shadow-sm transition-colors hover:border-line-strong ${className ?? ''}`}
+    >
+      <Search size={17} />
+      <span className="flex-1 truncate text-left">Cerca…</span>
+      <kbd className="hidden rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-muted md:inline">Ctrl K</kbd>
+    </button>
+  );
+}
 
-  if (query.trim().length > 1) {
-    const q = query.toLowerCase();
-    
-    servicesSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.title?.toLowerCase().includes(q) || data.description?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'services', label: data.title, icon: FileText });
-      }
-    });
+export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [q, setQ] = useState('');
+  const [index, setIndex] = useState<Result[] | null>(null);
+  const [active, setActive] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    groupsSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.name?.toLowerCase().includes(q) || data.description?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'community', label: data.name, icon: Users });
-      }
-    });
+  // I dati vengono caricati solo quando la ricerca viene aperta (prima: 7 listener sempre attivi, duplicati)
+  useEffect(() => {
+    if (!open) return;
+    setQ('');
+    setActive(0);
+    loadIndex().then(setIndex);
+    setTimeout(() => inputRef.current?.focus(), 30);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
-    liturgySnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.date?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'liturgy', label: `Letture: ${data.date}`, icon: BookOpen });
-      }
-    });
-    
-    massesSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.day?.toLowerCase().includes(q) || data.location?.toLowerCase().includes(q) || data.time?.toLowerCase().includes(q) || data.title?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'liturgy', label: `S. Messa ${data.day} ${data.time}`, icon: BookOpen });
-      }
-    });
+  const results = useMemo(() => {
+    const term = norm(q.trim());
+    const pages: Result[] = NAV_ITEMS.map((n) => ({ key: 'p' + n.path, label: n.label, sub: n.description, section: 'Pagine', icon: n.icon, path: n.path, haystack: norm(`${n.label} ${n.description}`) }));
+    if (!term) return pages;
+    const words = term.split(/\s+/);
+    return [...pages, ...(index ?? [])].filter((r) => words.every((w) => r.haystack.includes(w))).slice(0, 40);
+  }, [q, index]);
 
-    eventsSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.title?.toLowerCase().includes(q) || data.location?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'community', label: `Evento: ${data.title}`, icon: Users });
-      }
-    });
+  const go = (r: Result) => {
+    navigate(r.path);
+    onClose();
+  };
 
-    noticesSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.title?.toLowerCase().includes(q) || data.content?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'home', label: `Avviso: ${data.title}`, icon: FileText });
-      }
-    });
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive((a) => Math.min(a + 1, results.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive((a) => Math.max(a - 1, 0));
+    } else if (e.key === 'Enter' && results[active]) {
+      go(results[active]);
+    } else if (e.key === 'Escape') {
+      onClose();
+    }
+  };
 
-    formsSnap?.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.title?.toLowerCase().includes(q) || data.description?.toLowerCase().includes(q)) {
-        results.push({ id: doc.id, type: 'registrations', label: `Modulo: ${data.title}`, icon: FileText });
-      }
-    });
-  }
+  let lastSection = '';
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto z-50 p-4" ref={wrapperRef}>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-church-400" />
-        </div>
-        <input
-          type="text"
-          className="block w-full pl-14 pr-14 py-3 border border-church-200 rounded-full leading-5 bg-white placeholder-church-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 sm:text-sm shadow-sm transition-all"
-          placeholder="Cerca servizi, liturgia, gruppi..."
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-        />
-        {query && (
-          <button
-            onClick={() => { setQuery(''); setIsOpen(false); }}
-            className="absolute inset-y-0 right-0 pr-5 flex items-center text-church-400 hover:text-church-600"
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[95] flex justify-center p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-6 sm:pt-[12vh]" role="dialog" aria-modal="true" aria-label="Ricerca">
+          <motion.div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+          <motion.div
+            initial={{ opacity: 0, y: -12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className="relative flex max-h-[80dvh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-float"
           >
-            <X className="h-5 w-5" />
-          </button>
-        )}
-      </div>
-
-      {isOpen && query.trim().length > 1 && (
-        <div className="absolute mt-2 left-4 right-4 bg-white rounded-xl shadow-lg border border-church-100 overflow-hidden max-h-96 overflow-y-auto">
-          {results.length > 0 ? (
-            <ul className="divide-y divide-church-50">
-              {results.map((res, i) => (
-                <li key={`${res.id}-${i}`}>
-                  <button
-                    onClick={() => {
-                      setCurrentView(res.type);
-                      setIsOpen(false);
-                      setQuery('');
-                    }}
-                    className="w-full text-left px-4 py-3 hover:bg-church-50 flex items-center gap-3 transition-colors"
-                  >
-                    <res.icon className="text-church-400 shrink-0" size={18} />
-                    <span className="font-medium text-church-800 text-sm truncate px-1">{res.label}</span>
-                    <span className="ml-auto text-[10px] uppercase font-bold text-church-400 bg-church-100 px-2 py-1 rounded-full shrink-0">
-                      {res.type === 'community' ? 'Comunità' : res.type === 'services' ? 'Servizi' : res.type === 'home' ? 'Avvisi' : res.type === 'registrations' ? 'Iscrizioni' : 'Liturgia'}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="px-4 py-6 text-center text-church-500 text-sm">
-              Nessun risultato trovato per "{query}"
+            <div className="flex items-center gap-3 border-b border-line px-4">
+              <Search size={20} className="text-muted" />
+              <input
+                ref={inputRef}
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setActive(0);
+                }}
+                onKeyDown={onKey}
+                placeholder="Cerca in tutta l'app…"
+                className="h-14 flex-1 bg-transparent text-base text-ink placeholder:text-subtle focus:outline-none"
+                aria-label="Cerca"
+              />
+              <button onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-surface-2" aria-label="Chiudi ricerca">
+                <X size={18} />
+              </button>
             </div>
-          )}
+            <div className="overflow-y-auto p-2">
+              {q && index === null && <p className="px-3 py-6 text-center text-sm text-muted">Caricamento…</p>}
+              {results.length === 0 && index !== null && (
+                <p className="px-3 py-10 text-center text-sm text-muted">Nessun risultato per “{q}”.</p>
+              )}
+              <ul>
+                {results.map((r, i) => {
+                  const header = r.section !== lastSection ? r.section : null;
+                  lastSection = r.section;
+                  return (
+                    <li key={r.key}>
+                      {header && <p className="px-3 pb-1 pt-3 text-[11px] font-bold uppercase tracking-wider text-subtle">{header}</p>}
+                      <button
+                        onMouseEnter={() => setActive(i)}
+                        onClick={() => go(r)}
+                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${i === active ? 'bg-primary-soft' : ''}`}
+                      >
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${i === active ? 'bg-surface text-primary' : 'bg-surface-2 text-muted'}`}>
+                          <r.icon size={17} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-ink">{r.label}</span>
+                          {r.sub && <span className="block truncate text-xs text-muted">{r.sub}</span>}
+                        </span>
+                        {i === active && <CornerDownLeft size={15} className="text-primary" />}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }

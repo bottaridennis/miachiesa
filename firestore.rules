@@ -1,112 +1,142 @@
 rules_version = '2';
+
+// Regole di sicurezza "Mia Chiesa".
+// Principi: lettura pubblica solo dei contenuti pubblici, dati personali visibili
+// solo al proprietario o agli admin, scritture validate nei campi e nelle dimensioni.
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
+
+    // ---------- Funzioni di supporto ----------
+    function signedIn() { return request.auth != null; }
+
     function isSuperAdmin() {
-      return isAuthenticated() && request.auth.token.email == 'dennisbottari@gmail.com';
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'dennisbottari@gmail.com';
     }
 
     function isAdmin() {
-      return isSuperAdmin() || (isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isVerifiedMember(groupId) {
-      // Look up if there's a verified membership doc where groupId and userId match
-      // We can query group_members collection. But in rules, we can only get a specific document path.
-      // So group_members document ID should be: groupId + '_' + userId
-      return isAuthenticated() && get(/databases/$(database)/documents/group_members/$(groupId + '_' + request.auth.uid)).data.isVerified == true;
+      return isSuperAdmin() || (signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true);
     }
 
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    function isVerifiedMember(groupId) {
+      let path = /databases/$(database)/documents/group_members/$(groupId + '_' + request.auth.uid);
+      return signedIn() && exists(path) && get(path).data.isVerified == true;
+    }
+
+    function data() { return request.resource.data; }
+    function changed() { return data().diff(resource.data).affectedKeys(); }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function nonEmpty(v, max) { return v is string && v.size() > 0 && v.size() <= max; }
+
+    // ---------- Utenti ----------
     match /users/{userId} {
-      allow read: if true;
-      allow create: if isOwner(userId) || isSuperAdmin();
-      // Allow users to update their own profile, but only SuperAdmin can modify isAdmin
-      allow update: if isSuperAdmin() || (isOwner(userId) && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin));
+      // Le email non sono più pubbliche: solo il proprietario e gli admin
+      allow read: if isOwner(userId) || isAdmin();
+      // Alla creazione un utente non può auto-promuoversi amministratore
+      allow create: if isOwner(userId) && data().get('isAdmin', false) == false;
+      allow update: if isSuperAdmin()
+        || (isOwner(userId) && !changed().hasAny(['isAdmin']));
       allow delete: if isSuperAdmin();
     }
-    
+
+    match /user_settings/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
+    }
+
+    match /user_favorites/{favId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isOwner(data().userId) && favId == request.auth.uid + '_' + data().noticeId;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // ---------- Gruppi e abilitazioni ----------
     match /groups/{groupId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
+
     match /group_members/{memberId} {
-      allow read: if true;
-      // Users can request to join a group, but they can't set themselves as verified
-      allow create: if (isOwner(request.resource.data.userId) && request.resource.data.isVerified == false) || isAdmin();
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      // Richiesta di adesione: id deterministico, mai già verificata
+      allow create: if isAdmin() || (
+        isOwner(data().userId)
+        && data().isVerified == false
+        && memberId == data().groupId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/groups/$(data().groupId))
+      );
       allow update: if isAdmin();
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
-    
+
+    // ---------- Avvisi ----------
+    function validNotice() {
+      return nonEmpty(data().title, 200)
+        && nonEmpty(data().content, 20000)
+        && data().category in ['Avviso', 'Notizia', 'Riflessione', 'Urgente']
+        && str(data().get('attachmentUrl', ''), 2000);
+    }
+
     match /notices/{noticeId} {
       allow read: if true;
-      allow create: if isAdmin() || (isOwner(request.resource.data.authorId) && isVerifiedMember(request.resource.data.groupId));
-      allow update, delete: if isAdmin() || isOwner(resource.data.authorId);
+      allow create: if validNotice() && (
+        (isAdmin() && isOwner(data().authorId))
+        || (isOwner(data().authorId)
+            && data().groupId != 'admin'
+            && isVerifiedMember(data().groupId)
+            && data().get('pinned', false) == false)
+      );
+      allow update: if validNotice() && (
+        isAdmin()
+        || (isOwner(resource.data.authorId)
+            && !changed().hasAny(['authorId', 'pinned', 'timestamp'])
+            && isVerifiedMember(data().groupId))
+      );
+      allow delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
     }
-    
+
+    // ---------- Contenuti gestiti dagli admin ----------
+    match /events/{id}            { allow read: if true; allow write: if isAdmin(); }
+    match /mass_times/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /liturgy/{id}           { allow read: if true; allow write: if isAdmin(); }
+    match /forms/{id}             { allow read: if true; allow write: if isAdmin(); }
+    match /service_options/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /community_members/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /site_config/{id}       { allow read: if true; allow write: if isAdmin(); }
+
+    // ---------- Richieste alla segreteria ----------
     match /messages/{messageId} {
-      allow write: if true;
+      // Chiunque può inviare una richiesta (prima chiunque poteva anche modificarle o cancellarle)
+      allow create: if nonEmpty(data().name, 120)
+        && nonEmpty(data().email, 200)
+        && nonEmpty(data().get('service', ''), 200)
+        && str(data().get('message', ''), 5000)
+        && str(data().get('phone', ''), 40)
+        && data().get('status', 'nuova') == 'nuova'
+        && (data().get('userId', null) == null || isOwner(data().userId));
       allow read, update, delete: if isAdmin();
     }
 
-    match /events/{eventId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /mass_times/{massTimeId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /liturgy/{liturgyId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /forms/{formId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /form_submissions/{submissionId} {
-      allow write: if true;
-      allow read: if isAdmin() || isOwner(resource.data.userId);
+    // ---------- Iscrizioni ----------
+    match /form_submissions/{subId} {
+      allow create: if data().formId is string
+        && exists(/databases/$(database)/documents/forms/$(data().formId))
+        && data().data is map
+        && (data().userId == 'anonymous' || isOwner(data().userId));
+      allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
-    match /user_favorites/{favoriteId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId);
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
-    }
-
-    match /service_options/{optionId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /user_settings/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-    }
-
+    // ---------- Statistiche ----------
     match /visitors/{visitorId} {
-      allow write: if true;
+      allow create: if data().keys().hasOnly(['timestamp']);
       allow read, update, delete: if isAdmin();
-    }
-    
-    match /community_members/{memberId} {
-      allow read: if true;
-      allow write: if isAdmin();
     }
   }
 }
