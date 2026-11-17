@@ -1,4 +1,5 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 const control =
@@ -54,17 +55,12 @@ export function Select({ label, hint, className, id, children, ...rest }: Select
   const fid = id ?? autoId;
   return (
     <Wrap label={label} hint={hint} required={rest.required} id={fid} className={className}>
-      <select
-        id={fid}
-        className={cn(
-          control,
-          'appearance-none bg-[length:16px] bg-[right_0.85rem_center] bg-no-repeat pr-10',
-          "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]",
-        )}
-        {...rest}
-      >
-        {children}
-      </select>
+      <div className="relative">
+        <select id={fid} className={cn(control, 'cursor-pointer appearance-none pr-10')} {...rest}>
+          {children}
+        </select>
+        <ChevronDown size={18} aria-hidden className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted" />
+      </div>
     </Wrap>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useCollection, useDocument } from 'react-firebase-hooks/firestore';
 import type { DocumentReference, FirestoreError, Query } from 'firebase/firestore';
 
@@ -17,13 +17,15 @@ function useReportError(error?: FirestoreError) {
 export function useCol<T extends { id: string }>(q: Query | null | undefined) {
   const [snap, loading, error] = useCollection(q);
   useReportError(error);
-  const data = (snap?.docs.map((d) => ({ id: d.id, ...d.data() })) ?? []) as T[];
+  // Riferimento stabile finché lo snapshot non cambia: senza useMemo ogni render creava un array nuovo
+  // e gli useEffect che dipendono dai dati entravano in un ciclo infinito (es. form del profilo).
+  const data = useMemo(() => (snap?.docs.map((d) => ({ id: d.id, ...d.data() })) ?? []) as T[], [snap]);
   return { data, loading: loading && !snap, error };
 }
 
 export function useDocData<T>(ref: DocumentReference | null | undefined) {
   const [snap, loading, error] = useDocument(ref);
   useReportError(error);
-  const data = snap?.exists() ? ({ id: snap.id, ...snap.data() } as T) : null;
+  const data = useMemo(() => (snap?.exists() ? ({ id: snap.id, ...snap.data() } as T) : null), [snap]);
   return { data, loading: loading && !snap, error, exists: !!snap?.exists() };
 }
