@@ -1,0 +1,45 @@
+name: Deploy
+
+# Pubblica il sito su Firebase Hosting e aggiorna le regole Firestore ad ogni push su main.
+# Secret richiesti (Settings → Secrets and variables → Actions):
+#   FIREBASE_APPLET_CONFIG    contenuto di firebase-applet-config.json
+#   FIREBASE_SERVICE_ACCOUNT  JSON di un service account con ruoli "Firebase Hosting Admin" e "Firebase Rules Admin"
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          FIREBASE_APPLET_CONFIG: ${{ secrets.FIREBASE_APPLET_CONFIG }}
+      - name: Verifica secret
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT mancante: vedi README, sezione Deploy."
+            exit 1
+          fi
+      - name: Deploy su Firebase (hosting + regole Firestore)
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx firebase deploy --only hosting,firestore:rules --project spheric-splicer-wf4nj --non-interactive
