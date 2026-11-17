@@ -33,12 +33,7 @@ La configurazione Firebase **non è nel repository**. Viene letta, in questo ord
 
 ### Secret di GitHub
 
-In **Settings → Secrets and variables → Actions** crea:
-
-| Secret | Valore |
-| --- | --- |
-| `FIREBASE_APPLET_CONFIG` | L'intero contenuto di `firebase-applet-config.json` |
-| `FIREBASE_SERVICE_ACCOUNT` | Solo per il deploy automatico: il JSON di un service account con i ruoli *Firebase Hosting Admin* e *Firebase Rules Admin* (Console Google Cloud → IAM → Service account → Chiavi) |
+In **Settings → Secrets and variables → Actions** crea il secret `FIREBASE_APPLET_CONFIG` e incollaci l'intero contenuto di `firebase-applet-config.json`. Non servono altri secret.
 
 > La `apiKey` Firebase per il web non è un vero segreto, perché finisce comunque nel codice scaricato dal browser. La protezione reale sono le **regole Firestore** (`firestore.rules`). In aggiunta, conviene limitare la chiave ai propri domini dalla Console Google Cloud (API e servizi → Credenziali).
 
@@ -69,21 +64,20 @@ npm run test:rules     # 24 test automatici sulle regole di sicurezza (emulatore
 
 ## Deploy
 
-Ad ogni push su `main`, il workflow `.github/workflows/deploy.yml`:
-1. compila l'app usando il secret `FIREBASE_APPLET_CONFIG`;
-2. la pubblica su **Firebase Hosting**;
-3. aggiorna le **regole Firestore** del database `ai-studio-miachiesa-…`.
+Il sito è pubblicato su **GitHub Pages** (https://bottaridennis.github.io/miachiesa/). Il workflow `.github/workflows/deploy.yml` lo ricompila e lo pubblica ad ogni push su `main`; `ci.yml` esegue type-check, build e test delle regole su ogni pull request.
 
-Il workflow `ci.yml` esegue type-check, build e test delle regole su ogni pull request.
+Configurazione da fare una sola volta:
+1. **Settings → Pages → Build and deployment → Source:** scegli *GitHub Actions*.
+2. **Console Firebase → Authentication → Settings → Authorized domains:** aggiungi `bottaridennis.github.io`. Senza questo passo l'accesso con Google fallisce (`auth/unauthorized-domain`).
 
-Per un deploy manuale:
+Le **regole Firestore** non fanno parte del deploy automatico: dopo averle modificate, pubblicale a mano con
 
 ```bash
 npx firebase login
-npx firebase deploy --only hosting,firestore:rules
+npx firebase deploy --only firestore:rules
 ```
 
-> ⚠️ **Importante:** prima di andare in produzione pubblica `firestore.rules`. Oggi il database rifiuta anche le letture pubbliche, quindi l'app mostra un avviso "contenuti non accessibili".
+Il file `firebase.json` punta solo al database `ai-studio-miachiesa-…`, quindi gli altri database del progetto non vengono toccati.
 
 ## Struttura
 

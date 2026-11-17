@@ -32,6 +32,8 @@ export default defineConfig(({ mode, command }) => {
     throw new Error('Build interrotta: imposta il secret FIREBASE_APPLET_CONFIG (vedi README).');
   }
   return {
+    // Percorsi relativi: il sito funziona sia su bottaridennis.github.io/miachiesa/ sia su un dominio proprio
+    base: './',
     plugins: [react(), tailwindcss()],
     define: {
       __FIREBASE_CONFIG__: JSON.stringify(firebaseConfig),
