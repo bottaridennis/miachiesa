@@ -39,5 +39,7 @@ export const routes = {
   donations: '/donazioni',
   notice: (id: string) => `/avvisi/${encodeURIComponent(id)}`,
   account: '/area',
+  privacy: '/privacy',
+  cookies: '/cookie',
   accountSection: (s: string) => `/area/${s}`,
 };

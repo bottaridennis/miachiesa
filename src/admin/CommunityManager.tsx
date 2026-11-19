@@ -110,6 +110,7 @@ export default function CommunityManager() {
               <Input label="Ruolo" required value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })} placeholder="Parroco" />
             </div>
             <ParishSelect value={draft.parish ?? 'Unità Pastorale'} onChange={(v) => setDraft({ ...draft, parish: v as ParishScope })} />
+            <p className="text-xs text-muted">Nome, ruolo e foto saranno pubblici: inseriscili solo con il consenso della persona.</p>
           </form>
         )}
       </Modal>

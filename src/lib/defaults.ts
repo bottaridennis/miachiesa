@@ -23,5 +23,3 @@ export const DEFAULT_SERVICE_OPTIONS: Omit<ServiceOption, 'id' | 'timestamp'>[] 
   { value: 'altro', label: 'Altro / Informazioni' },
 ];
 
-export const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1548625361-ec853713f063?auto=format&fit=crop&w=1600&q=70';

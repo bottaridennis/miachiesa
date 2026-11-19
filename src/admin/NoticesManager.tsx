@@ -242,6 +242,8 @@ export default function NoticesManager() {
               </div>
             </div>
 
+            <p className="-mt-2 text-xs text-muted">Pubblica foto in cui sono riconoscibili persone, e in particolare minori, solo se hai il loro consenso (o quello dei genitori).</p>
+
             <Input label="Link allegato (PDF, modulo…)" type="url" placeholder="https://…" value={draft.attachmentUrl} onChange={(e) => setDraft({ ...draft, attachmentUrl: e.target.value })} hint="Ad esempio un link a Google Drive o al sito della diocesi." />
 
             {isAdmin && <Toggle checked={draft.pinned} onChange={(v) => setDraft({ ...draft, pinned: v })} label="Fissa in evidenza" description="L'avviso resterà in cima alla bacheca." />}

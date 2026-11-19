@@ -41,7 +41,8 @@ service cloud.firestore {
       allow create: if isOwner(userId) && data().get('isAdmin', false) == false;
       allow update: if isSuperAdmin()
         || (isOwner(userId) && !changed().hasAny(['isAdmin']));
-      allow delete: if isSuperAdmin();
+      // Diritto alla cancellazione (art. 17 GDPR): l'utente può eliminare il proprio profilo
+      allow delete: if isSuperAdmin() || isOwner(userId);
     }
 
     match /user_settings/{userId} {
