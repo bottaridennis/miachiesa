@@ -8,7 +8,7 @@ import { downloadCSV } from '../lib/csv';
 import { routes } from '../lib/router';
 import { Modal } from '../components/ui/Dialog';
 import { Button, IconButton } from '../components/ui/Button';
-import { Input, Select, Textarea } from '../components/ui/Field';
+import { Input, Select, Textarea, Toggle } from '../components/ui/Field';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState, SkeletonList } from '../components/ui/Feedback';
 import { ListCard, ParishSelect, RowActions, SectionHeader, useAction } from './common';
@@ -32,10 +32,9 @@ const defaultFields = (): FormField[] => [
   { label: 'Data di nascita', type: 'date', required: true },
   { label: 'Telefono', type: 'tel', required: true },
   { label: 'Email', type: 'email', required: true },
-  { label: 'Acconsento al trattamento dei dati personali', type: 'checkbox', required: true },
 ];
 
-const empty = (): Draft => ({ title: '', description: '', deadline: toISODate(new Date(Date.now() + 14 * 86400000)), fields: defaultFields(), parish: 'Unità Pastorale' });
+const empty = (): Draft => ({ title: '', description: '', deadline: toISODate(new Date(Date.now() + 14 * 86400000)), fields: defaultFields(), parish: 'Unità Pastorale', forMinors: false, askPhotoConsent: false });
 
 export default function FormsManager() {
   const { run, remove, toast } = useAction();
@@ -54,6 +53,8 @@ export default function FormsManager() {
     const { id, ...rest } = draft;
     const payload = {
       ...rest,
+      forMinors: !!rest.forMinors,
+      askPhotoConsent: !!rest.askPhotoConsent,
       fields: rest.fields.map((f) => ({ label: f.label.trim(), type: f.type, required: f.required, ...(f.type === 'select' ? { options: (f.options ?? []).map((o) => o.trim()).filter(Boolean) } : {}) })),
     };
     setSaving(true);
@@ -120,6 +121,13 @@ export default function FormsManager() {
               <ParishSelect value={draft.parish ?? 'Unità Pastorale'} onChange={(v) => setDraft({ ...draft, parish: v as ParishScope })} />
             </div>
 
+            <div className="space-y-3 rounded-2xl border border-line bg-surface-2/40 p-4">
+              <p className="text-sm font-semibold text-ink-2">Privacy e consensi</p>
+              <p className="text-xs text-muted">La presa visione dell'informativa privacy viene chiesta automaticamente in ogni modulo: non serve aggiungere un campo apposito.</p>
+              <Toggle checked={!!draft.forMinors} onChange={(v) => setDraft({ ...draft, forMinors: v })} label="Iscrizione di minori" description="Chi compila dichiara di esercitare la responsabilità genitoriale sul minore." />
+              <Toggle checked={!!draft.askPhotoConsent} onChange={(v) => setDraft({ ...draft, askPhotoConsent: v })} label="Chiedi il consenso a foto e video" description="Consenso facoltativo e separato: chi non lo dà può comunque iscriversi." />
+            </div>
+
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink-2">Campi del modulo</p>
@@ -175,11 +183,17 @@ function SubmissionsModal({ form, onClose }: { form: RegistrationForm; onClose: 
   // colonne: campi attuali del modulo + eventuali campi presenti solo nelle vecchie iscrizioni
   const cols = Array.from(new Set([...(form.fields ?? []).map((f) => f.label), ...subs.flatMap((s) => Object.keys(s.data ?? {}))]));
   const show = (v: unknown) => (typeof v === 'boolean' ? (v ? 'Sì' : 'No') : (v as string) || '—');
+  const yn = (v?: boolean) => (v === undefined ? '—' : v ? 'Sì' : 'No');
+  const consentCols: { label: string; get: (s: FormSubmission) => string }[] = [
+    ...(form.forMinors ? [{ label: 'Resp. genitoriale', get: (s: FormSubmission) => yn(s.consents?.guardian) }] : []),
+    ...(form.askPhotoConsent ? [{ label: 'Consenso foto/video', get: (s: FormSubmission) => yn(s.consents?.photos) }] : []),
+    { label: 'Informativa letta', get: (s: FormSubmission) => (s.consents ? `Sì (v. ${s.consents.privacyVersion})` : '—') },
+  ];
 
   const exportCsv = () =>
     downloadCSV(`iscrizioni_${form.title.replace(/[^\w]+/g, '_')}`, [
-      ['#', 'Data invio', 'Account', ...cols],
-      ...subs.map((s, i) => [i + 1, formatDateTime(s.timestamp), s.userEmail, ...cols.map((c) => s.data?.[c] as string | boolean)]),
+      ['#', 'Data invio', 'Account', ...cols, ...consentCols.map((c) => c.label)],
+      ...subs.map((s, i) => [i + 1, formatDateTime(s.timestamp), s.userEmail, ...cols.map((c) => s.data?.[c] as string | boolean), ...consentCols.map((c) => c.get(s))]),
     ]);
 
   return (
@@ -209,6 +223,9 @@ function SubmissionsModal({ form, onClose }: { form: RegistrationForm; onClose: 
                 {cols.map((c) => (
                   <th key={c} className="px-4 py-2.5 font-semibold">{c}</th>
                 ))}
+                {consentCols.map((c) => (
+                  <th key={c.label} className="px-4 py-2.5 font-semibold">{c.label}</th>
+                ))}
                 <th />
               </tr>
             </thead>
@@ -219,6 +236,9 @@ function SubmissionsModal({ form, onClose }: { form: RegistrationForm; onClose: 
                   <td className="px-4 py-2.5 text-xs text-muted">{formatDateTime(s.timestamp)}</td>
                   {cols.map((c) => (
                     <td key={c} className="max-w-[240px] truncate px-4 py-2.5 text-ink">{show(s.data?.[c])}</td>
+                  ))}
+                  {consentCols.map((c) => (
+                    <td key={c.label} className="px-4 py-2.5 text-ink-2">{c.get(s)}</td>
                   ))}
                   <td className="px-2">
                     <IconButton label="Elimina iscrizione" className="h-8 w-8 hover:text-danger" onClick={() => remove("l'iscrizione", () => deleteDoc(doc(db, 'form_submissions', s.id)))}>

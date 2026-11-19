@@ -6,6 +6,7 @@ import { auth, db, loginWithGoogle, logout, SUPER_ADMIN_EMAIL } from './firebase
 import { useDocData } from './useCol';
 import type { UserProfile } from '../types';
 import { useToast } from '../components/ui/Toast';
+import { useConsent } from './consent';
 
 interface Session {
   user: User | null | undefined;
@@ -41,8 +42,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     ).catch((e) => console.error('Aggiornamento profilo fallito', e));
   }, [user]);
 
-  // Conteggio visitatori unici (una volta per browser)
+  // Conteggio visitatori unici: SOLO con il consenso "statistiche" (cookie banner).
+  // Il documento contiene solo un timestamp: nessun IP, nessun dato dell'utente.
+  const consent = useConsent();
   useEffect(() => {
+    if (!consent?.statistics) return;
     try {
       if (localStorage.getItem('visitor_id')) return;
       const id = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
@@ -51,7 +55,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     } catch {
       /* storage non disponibile */
     }
-  }, []);
+  }, [consent?.statistics]);
 
   const isSuperAdmin = !!user?.email && user.email.toLowerCase() === SUPER_ADMIN_EMAIL;
   const isAdmin = isSuperAdmin || profile?.isAdmin === true;

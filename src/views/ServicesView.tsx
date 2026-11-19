@@ -12,6 +12,8 @@ import { Input, Select, Textarea } from '../components/ui/Field';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../components/ui/Toast';
 import type { ServiceOption } from '../types';
+import { ConsentCheckbox, PrivacyLink } from '../components/ConsentCheckbox';
+import { PRIVACY_VERSION } from '../lib/legal';
 
 export default function ServicesView() {
   const { user } = useSession();
@@ -22,6 +24,7 @@ export default function ServicesView() {
 
   const empty = { name: '', email: '', phone: '', service: '', message: '' };
   const [form, setForm] = useState(empty);
+  const [privacyAck, setPrivacyAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState<string | null>(null);
 
@@ -35,6 +38,10 @@ export default function ServicesView() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!privacyAck) {
+      toast.error("Per inviare la richiesta conferma di aver letto l'informativa privacy.");
+      return;
+    }
     if (!serviceValue) {
       toast.error('Seleziona il tipo di richiesta.');
       return;
@@ -50,10 +57,12 @@ export default function ServicesView() {
         message: form.message.trim(),
         status: 'nuova',
         userId: user?.uid ?? null,
+        consents: { privacyAck: true, privacyVersion: PRIVACY_VERSION, at: Date.now() },
         timestamp: Date.now(),
       });
       setSent(label);
       setForm({ ...empty, name: user?.displayName ?? '', email: user?.email ?? '' });
+      setPrivacyAck(false);
     } catch (err) {
       console.error(err);
       toast.error("Invio non riuscito. Riprova più tardi o contattaci telefonicamente.");
@@ -108,7 +117,9 @@ export default function ServicesView() {
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                 maxLength={3000}
               />
-              <p className="text-xs text-muted">I dati inseriti sono usati esclusivamente dalla segreteria parrocchiale per rispondere alla tua richiesta.</p>
+              <ConsentCheckbox checked={privacyAck} onChange={setPrivacyAck} required>
+                Ho letto l'<PrivacyLink /> e sono consapevole che i dati inseriti saranno usati dalla segreteria parrocchiale solo per rispondere a questa richiesta.
+              </ConsentCheckbox>
               <Button type="submit" size="lg" block loading={submitting} icon={<Send size={18} />}>
                 Invia richiesta
               </Button>

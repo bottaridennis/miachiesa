@@ -13,6 +13,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { Button } from '../components/ui/Button';
 import { EmptyState, SkeletonList } from '../components/ui/Feedback';
 import { Badge } from '../components/ui/Badge';
+import { LoginPrivacyNote } from '../components/Footer';
 import FavoritesSection from '../admin/FavoritesSection';
 import MySubmissionsSection from '../admin/MySubmissionsSection';
 import ProfileSection from '../admin/ProfileSection';
@@ -87,9 +88,12 @@ export default function AccountView({ section }: { section?: string }) {
           title="Accedi alla tua area personale"
           description="Salva gli avvisi preferiti, ritrova le tue iscrizioni e, se sei animatore di un gruppo, pubblica gli avvisi."
           action={
-            <Button icon={<LogIn size={17} />} onClick={login}>
-              Accedi con Google
-            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <Button icon={<LogIn size={17} />} onClick={login}>
+                Accedi con Google
+              </Button>
+              <LoginPrivacyNote className="max-w-xs text-center" />
+            </div>
           }
         />
       </Page>

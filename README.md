@@ -24,6 +24,23 @@ Inoltre:
 - installabile sul telefono come app (PWA);
 - cache offline.
 
+## Privacy e GDPR
+
+Il sito è progettato per essere conforme al GDPR, al Codice privacy e alle Linee guida cookie del Garante (10 giugno 2021):
+
+- **Nessuna terza parte al caricamento:** i font sono ospitati sul sito e non ci sono immagini esterne. Lo script di Google per l'accesso viene caricato solo quando l'utente sceglie di accedere.
+- **Banner cookie:** "Rifiuta" e "Accetta" hanno la stessa evidenza e chiudere con la X equivale a rifiutare. Le scelte si possono riaprire dal footer e vengono richieste di nuovo dopo 6 mesi. L'unico strumento facoltativo è il contatore anonimo delle visite.
+- **Informativa privacy** (`#/privacy`) e **cookie policy** (`#/cookie`). I dati del titolare si compilano in *Area riservata → Impostazioni sito → Privacy*.
+- **Caselle di consenso mai preselezionate:**
+  - presa visione dell'informativa nei moduli della segreteria e delle iscrizioni;
+  - dichiarazione di responsabilità genitoriale per le iscrizioni di minori;
+  - consenso facoltativo e separato a foto e video.
+
+  Ogni consenso è salvato con la versione dell'informativa (`PRIVACY_VERSION` in `src/lib/legal.ts`) e l'ora.
+- **Diritti dell'interessato:** dall'area personale l'utente può scaricare i propri dati in JSON ed eliminare l'account.
+
+> I testi sono un modello accurato ma vanno verificati con il referente privacy della Diocesi prima della pubblicazione definitiva. Se il testo dell'informativa cambia in modo sostanziale, aggiorna `PRIVACY_VERSION`.
+
 ## Configurazione
 
 La configurazione Firebase **non è nel repository**. Viene letta, in questo ordine, da:
@@ -59,7 +76,7 @@ npm run dev:emulator   # terminale 2: avvia l'app collegata all'emulatore
 ```bash
 npm run lint           # controllo dei tipi TypeScript
 npm run build          # build di produzione in dist/
-npm run test:rules     # 24 test automatici sulle regole di sicurezza (emulatore)
+npm run test:rules     # 26 test automatici sulle regole di sicurezza (emulatore)
 ```
 
 ## Deploy

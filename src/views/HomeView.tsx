@@ -7,7 +7,6 @@ import { useSiteConfig } from '../lib/siteConfig';
 import { useSession } from '../lib/session';
 import { nextMass, nextMassLabel } from '../lib/format';
 import { routes } from '../lib/router';
-import { HERO_IMAGE } from '../lib/defaults';
 import { cn } from '../lib/cn';
 import { NoticeCard } from '../components/NoticeCard';
 import { EventCard } from '../components/EventCard';
@@ -72,7 +71,7 @@ export default function HomeView() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-32 pt-4 sm:px-6 md:pb-16 md:pt-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-4 sm:px-6 md:pt-8">
       {/* HERO */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
@@ -80,7 +79,19 @@ export default function HomeView() {
         transition={{ duration: 0.4 }}
         className="relative isolate overflow-hidden rounded-3xl bg-[#0f1d36] text-white shadow-float"
       >
-        <img src={config.heroImageUrl || HERO_IMAGE} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45" onError={(e) => (e.currentTarget.style.display = 'none')} />
+        {config.heroImageUrl ? (
+          <img src={config.heroImageUrl} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45" onError={(e) => (e.currentTarget.style.display = 'none')} />
+        ) : (
+          // Decorazione disegnata in CSS/SVG: nessuna immagine caricata da siti esterni
+          <svg aria-hidden className="absolute inset-0 -z-10 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="hero-cross" width="56" height="56" patternUnits="userSpaceOnUse">
+                <path d="M28 18v20M21 25h14" stroke="#e2b65a" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-cross)" />
+          </svg>
+        )}
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0b1528] via-[#0f1d36]/80 to-[#0f1d36]/20" />
         <div className="absolute -right-24 -top-24 -z-10 h-72 w-72 rounded-full bg-gold-bright/20 blur-3xl" />
         <div className="flex min-h-[340px] flex-col justify-end p-6 sm:min-h-[400px] sm:p-10">

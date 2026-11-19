@@ -51,6 +51,13 @@ describe('utenti', () => {
     await assertFails(updateDoc(doc(userDb('admin1'), 'users/bob'), { isAdmin: true }));
     await assertSucceeds(updateDoc(doc(superDb(), 'users/bob'), { isAdmin: true }));
   });
+  test("l'utente può eliminare il proprio profilo, non quello altrui (art. 17)", async () => {
+    await assertFails(deleteDoc(doc(userDb('eve'), 'users/bob')));
+    await assertSucceeds(deleteDoc(doc(userDb('bob'), 'users/bob')));
+  });
+  test('richiesta alla segreteria con registro dei consensi accettata', async () => {
+    await assertSucceeds(addDoc(collection(anon(), 'messages'), { name: 'Mario', email: 'm@x.it', service: 'Certificato', message: '', status: 'nuova', userId: null, consents: { privacyAck: true, privacyVersion: '2026-11-19', at: 1 }, timestamp: 1 }));
+  });
   test('email del super admin non verificata = nessun privilegio', async () => {
     const db = env.authenticatedContext('fake', { email: SUPER.email, email_verified: false }).firestore();
     await assertFails(updateDoc(doc(db, 'users/bob'), { isAdmin: true }));

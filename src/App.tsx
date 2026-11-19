@@ -24,6 +24,9 @@ import RegistrationsView from './views/RegistrationsView';
 import DonationsView from './views/DonationsView';
 import NoticeDetailView from './views/NoticeDetailView';
 import NotFoundView from './views/NotFoundView';
+import { CookieView, PrivacyView } from './views/LegalView';
+import { CookieBanner } from './components/CookieBanner';
+import { Footer, LoginPrivacyNote } from './components/Footer';
 
 // L'area riservata è caricata solo quando serve: alleggerisce il bundle per i visitatori
 const AccountView = lazy(() => import('./views/AccountView'));
@@ -100,11 +103,13 @@ function Shell() {
             <Router segments={segments} />
           </motion.div>
         </AnimatePresence>
+        <Footer />
       </main>
 
       <MobileTabBar path={path} onMore={() => setMoreOpen(true)} moreOpen={moreOpen} />
       <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} path={path} />
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <CookieBanner />
     </div>
   );
 }
@@ -126,6 +131,10 @@ function Router({ segments }: { segments: string[] }) {
       return <RegistrationsView formId={second} />;
     case 'donazioni':
       return <DonationsView />;
+    case 'privacy':
+      return <PrivacyView />;
+    case 'cookie':
+      return <CookieView />;
     case 'area':
       return (
         <Suspense
@@ -154,6 +163,7 @@ function UserBox() {
         <Button block size="sm" icon={<LogIn size={16} />} onClick={login}>
           Accedi con Google
         </Button>
+        <LoginPrivacyNote className="mt-2" />
       </div>
     );
   return (
@@ -364,9 +374,12 @@ function MoreSheet({ open, onClose, path }: { open: boolean; onClose: () => void
                   Esci da {user.email}
                 </Button>
               ) : (
-                <Button block icon={<LogIn size={17} />} onClick={() => { login(); onClose(); }}>
-                  Accedi con Google
-                </Button>
+                <>
+                  <Button block icon={<LogIn size={17} />} onClick={() => { login(); onClose(); }}>
+                    Accedi con Google
+                  </Button>
+                  <LoginPrivacyNote className="text-center" />
+                </>
               )}
             </div>
           </motion.div>

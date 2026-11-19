@@ -15,6 +15,7 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();
   const now = Date.now();
   await setDoc(doc(db, 'site_config/main'), {
+    privacy: { controllerName: 'Parrocchia di San Giovanni Battista in Oppeano', controllerAddress: 'Piazza della Chiesa 1, 37050 Oppeano (VR)', controllerEmail: 'privacy@parrocchia.example', controllerTaxCode: '00000000000', dpoContact: 'Ufficio privacy della Diocesi' },
     phone: '045 713 0000', email: 'segreteria@parrocchia.example', address: 'Piazza della Chiesa 1, Oppeano (VR)',
     welcomeMessage: 'Una comunità in cammino, insieme.',
     officeHours: [{ label: 'Lun – Mer', hours: '09:30 – 12:00' }, { label: 'Giovedì', hours: '16:00 – 18:30' }, { label: 'Ven – Sab', hours: 'Chiuso' }],
@@ -50,8 +51,8 @@ await env.withSecurityRulesDisabled(async (ctx) => {
     gospel: { reference: 'Lc 19,1-10', text: 'In quel tempo, Gesù entrò nella città di Gèrico e la stava attraversando, quand’ecco un uomo, di nome Zacchèo, capo dei pubblicani e ricco, cercava di vedere chi era Gesù…' },
     comment: 'Oggi la salvezza è entrata in questa casa: anche noi, come Zaccheo, siamo cercati dal Signore.',
   });
-  await addDoc(collection(db, 'forms'), { title: 'Campo scuola estivo', description: 'Una settimana in montagna per i ragazzi delle medie.', deadline: iso(2), timestamp: now, parish: 'Unità Pastorale', fields: [
-    { label: 'Nome e cognome', type: 'text', required: true }, { label: 'Data di nascita', type: 'date', required: true }, { label: 'Taglia maglietta', type: 'select', required: true, options: ['S', 'M', 'L', 'XL'] }, { label: 'Email', type: 'email', required: true }, { label: 'Acconsento al trattamento dei dati personali', type: 'checkbox', required: true },
+  await addDoc(collection(db, 'forms'), { title: 'Campo scuola estivo', description: 'Una settimana in montagna per i ragazzi delle medie.', deadline: iso(2), timestamp: now, parish: 'Unità Pastorale', forMinors: true, askPhotoConsent: true, fields: [
+    { label: 'Nome e cognome', type: 'text', required: true }, { label: 'Data di nascita', type: 'date', required: true }, { label: 'Taglia maglietta', type: 'select', required: true, options: ['S', 'M', 'L', 'XL'] }, { label: 'Email', type: 'email', required: true },
   ] });
   await addDoc(collection(db, 'forms'), { title: 'Catechismo 2026/27', description: 'Iscrizioni al percorso di iniziazione cristiana.', deadline: iso(30), timestamp: now - 1, fields: [{ label: 'Nome e cognome', type: 'text', required: true }] });
   await addDoc(collection(db, 'community_members'), { name: 'Don Mario Rossi', role: 'Parroco', parish: 'Unità Pastorale', order: 0 });

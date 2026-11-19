@@ -14,6 +14,8 @@ import { Input, Select, Textarea } from '../components/ui/Field';
 import { EmptyState, Notice, Skeleton, SkeletonList } from '../components/ui/Feedback';
 import { useToast } from '../components/ui/Toast';
 import type { FormField, FormSubmission, RegistrationForm } from '../types';
+import { ConsentCheckbox, PrivacyLink } from '../components/ConsentCheckbox';
+import { PRIVACY_VERSION } from '../lib/legal';
 
 export default function RegistrationsView({ formId }: { formId?: string }) {
   return formId ? <FormDetail id={formId} /> : <FormList />;
@@ -130,6 +132,7 @@ function FormDetail({ id }: { id: string }) {
   const { data: form, loading } = useDocData<RegistrationForm>(doc(db, 'forms', id));
   const mine = useMySubmissions();
   const [values, setValues] = useState<Record<string, string | boolean>>({});
+  const [consents, setConsents] = useState({ privacyAck: false, guardian: false, photos: false });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -166,6 +169,10 @@ function FormDetail({ id }: { id: string }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!consents.privacyAck || (form.forMinors && !consents.guardian)) {
+      toast.error('Per inviare l’iscrizione completa le dichiarazioni obbligatorie in fondo al modulo.');
+      return;
+    }
     setSubmitting(true);
     try {
       const data: Record<string, string | boolean> = {};
@@ -176,10 +183,19 @@ function FormDetail({ id }: { id: string }) {
         userId: user?.uid ?? 'anonymous',
         userEmail: user?.email ?? (Object.entries(data).find(([k]) => k.toLowerCase().includes('email'))?.[1] as string) ?? '',
         data,
+        // Prova del consenso: cosa ha dichiarato, su quale versione dell'informativa e quando
+        consents: {
+          privacyAck: true,
+          privacyVersion: PRIVACY_VERSION,
+          ...(form.forMinors ? { guardian: consents.guardian } : {}),
+          ...(form.askPhotoConsent ? { photos: consents.photos } : {}),
+          at: Date.now(),
+        },
         timestamp: Date.now(),
       });
       setDone(true);
       setValues({});
+      setConsents({ privacyAck: false, guardian: false, photos: false });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
@@ -247,7 +263,21 @@ function FormDetail({ id }: { id: string }) {
                 {(form.fields ?? []).map((f, i) => (
                   <FieldInput key={f.id ?? i} field={f} value={values[fieldKey(f)]} onChange={(v) => setValues((s) => ({ ...s, [fieldKey(f)]: v }))} />
                 ))}
-                <p className="text-xs text-muted">I dati sono trattati dalla parrocchia esclusivamente per l'organizzazione dell'attività.</p>
+                <div className="space-y-2.5 border-t border-line pt-5">
+                  {form.forMinors && (
+                    <ConsentCheckbox required checked={consents.guardian} onChange={(v) => setConsents({ ...consents, guardian: v })}>
+                      Dichiaro di esercitare la responsabilità genitoriale (o la tutela) sul minore che sto iscrivendo.
+                    </ConsentCheckbox>
+                  )}
+                  <ConsentCheckbox required checked={consents.privacyAck} onChange={(v) => setConsents({ ...consents, privacyAck: v })}>
+                    Ho letto l'<PrivacyLink /> e sono consapevole che i dati saranno trattati dalla parrocchia per organizzare questa attività.
+                  </ConsentCheckbox>
+                  {form.askPhotoConsent && (
+                    <ConsentCheckbox checked={consents.photos} onChange={(v) => setConsents({ ...consents, photos: v })}>
+                      Acconsento a fotografie e riprese video {form.forMinors ? 'del minore ' : ''}durante l'attività e alla loro pubblicazione sui canali della parrocchia (sito, bacheca, bollettino). Posso revocare il consenso in qualsiasi momento.
+                    </ConsentCheckbox>
+                  )}
+                </div>
                 <Button type="submit" size="lg" block loading={submitting} icon={<Send size={18} />}>
                   Invia iscrizione
                 </Button>

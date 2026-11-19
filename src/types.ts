@@ -91,9 +91,21 @@ export interface RegistrationForm {
   description: string;
   deadline: string; // YYYY-MM-DD
   fields: FormField[];
-  maxParticipants?: number;
   parish?: ParishScope;
+  /** Iscrizione di minori: chiede la dichiarazione di responsabilità genitoriale */
+  forMinors?: boolean;
+  /** Chiede il consenso facoltativo a foto e video durante l'attività */
+  askPhotoConsent?: boolean;
   timestamp: number;
+}
+
+/** Consensi raccolti insieme a un modulo (prova del consenso, art. 7.1 GDPR) */
+export interface ConsentRecord {
+  privacyAck: boolean;
+  privacyVersion: string;
+  guardian?: boolean;
+  photos?: boolean;
+  at: number;
 }
 
 export interface FormSubmission {
@@ -102,6 +114,7 @@ export interface FormSubmission {
   userId: string;
   userEmail: string;
   data: Record<string, string | boolean>;
+  consents?: ConsentRecord;
   timestamp: number;
 }
 
@@ -167,6 +180,8 @@ export interface UserProfile {
 
 export interface UserSettings {
   emailNotifications: boolean;
+  /** quando è stato dato (o revocato) il consenso alla newsletter */
+  emailNotificationsChangedAt?: number;
   preferredParish: ParishScope;
   phone?: string;
   updatedAt?: number;
@@ -186,7 +201,17 @@ export interface DonationAccount {
   description: string;
 }
 
+export interface PrivacyConfig {
+  controllerName: string;
+  controllerAddress: string;
+  controllerEmail: string;
+  controllerTaxCode?: string;
+  /** Referente/Responsabile protezione dati (es. ufficio diocesano) */
+  dpoContact?: string;
+}
+
 export interface SiteConfig {
+  privacy?: PrivacyConfig;
   phone: string;
   email: string;
   address: string;
