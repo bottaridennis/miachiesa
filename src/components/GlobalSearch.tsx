@@ -56,15 +56,17 @@ async function loadIndex(): Promise<Result[]> {
   return out.map((r) => ({ ...r, haystack: norm(r.haystack) }));
 }
 
-export function SearchTrigger({ onOpen, className }: { onOpen: () => void; className?: string }) {
+export function SearchTrigger({ onOpen, className, dark }: { onOpen: () => void; className?: string; dark?: boolean }) {
   return (
     <button
       onClick={onOpen}
-      className={`flex h-11 w-full items-center gap-3 rounded-xl border border-line bg-surface px-3.5 text-sm text-subtle shadow-sm transition-colors hover:border-line-strong ${className ?? ''}`}
+      className={`flex h-11 w-full items-center gap-3 rounded-xl border px-3.5 text-sm transition-colors ${
+        dark ? 'border-white/10 bg-white/[0.07] text-white/55 hover:border-white/20 hover:bg-white/10' : 'border-line bg-surface text-subtle shadow-sm hover:border-line-strong'
+      } ${className ?? ''}`}
     >
       <Search size={17} />
       <span className="flex-1 truncate text-left">Cerca…</span>
-      <kbd className="hidden rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-muted md:inline">Ctrl K</kbd>
+      <kbd className={`hidden rounded-md border px-1.5 py-0.5 font-sans text-[11px] font-semibold md:inline ${dark ? 'border-white/15 bg-white/10 text-white/60' : 'border-line bg-surface-2 text-muted'}`}>Ctrl K</kbd>
     </button>
   );
 }

@@ -97,7 +97,7 @@ function Readings() {
                 onClick={() => setTab(i)}
                 className={cn(
                   'whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                  active.key === p.key ? 'bg-primary text-on-primary' : 'text-ink-2 hover:bg-surface-3',
+                  active.key === p.key ? 'bg-gradient-primary text-white shadow-glow' : 'text-ink-2 hover:bg-surface-3',
                 )}
               >
                 {p.label}
@@ -111,8 +111,8 @@ function Readings() {
           {active.key === 'gospel' && <p className="mt-6 font-serif italic text-muted">Parola del Signore.</p>}
         </motion.div>
         {reading.comment && (
-          <div className="border-t border-line bg-gold-soft/40 px-5 py-6 sm:px-10">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gold">Un pensiero per oggi</p>
+          <div className="border-t border-line bg-violet-soft/60 px-5 py-6 sm:px-10">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-violet">Un pensiero per oggi</p>
             <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink-2">{reading.comment}</p>
           </div>
         )}
@@ -147,9 +147,9 @@ function MassSchedule() {
       <SectionTitle title={<span id="orari">Orari delle Messe</span>} icon={<Clock size={20} />} />
 
       {next && (
-        <div className="mb-4 rounded-2xl bg-primary p-5 text-on-primary shadow-float">
+        <div className="bg-vetrata relative mb-4 overflow-hidden rounded-2xl p-5 text-white shadow-float ring-1 ring-white/10">
           <p className="text-xs font-semibold uppercase tracking-wider opacity-70">Prossima celebrazione</p>
-          <p className="mt-1 font-serif text-2xl font-semibold">{nextMassLabel(next.at)}</p>
+          <p className="mt-1 font-serif text-2xl font-semibold text-white">{nextMassLabel(next.at)}</p>
           <p className="mt-1 flex items-center gap-1.5 text-sm opacity-85">
             <MapPin size={14} /> {next.mass.location}
           </p>
@@ -172,7 +172,7 @@ function MassSchedule() {
             aria-pressed={i === dayOffset}
             className={cn(
               'flex w-12 shrink-0 flex-col items-center rounded-xl border py-2 transition-all',
-              i === dayOffset ? 'border-primary bg-primary text-on-primary' : 'border-line bg-surface text-ink-2 hover:border-line-strong',
+              i === dayOffset ? 'border-transparent bg-gradient-primary text-white shadow-glow' : 'glass border-line text-ink-2 hover:border-violet/40',
               d.getDay() === 0 && i !== dayOffset && 'text-gold',
             )}
           >

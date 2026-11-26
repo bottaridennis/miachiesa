@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
 
-type Tone = 'neutral' | 'primary' | 'gold' | 'success' | 'warning' | 'danger' | 'oppeano' | 'cadeglioppi';
+type Tone = 'neutral' | 'primary' | 'gold' | 'success' | 'warning' | 'danger' | 'oppeano' | 'cadeglioppi' | 'emerald' | 'ruby' | 'violet';
 
 const tones: Record<Tone, string> = {
   neutral: 'bg-surface-2 text-ink-2',
@@ -12,6 +12,9 @@ const tones: Record<Tone, string> = {
   danger: 'bg-danger-soft text-danger',
   oppeano: 'bg-oppeano-soft text-oppeano',
   cadeglioppi: 'bg-cadeglioppi-soft text-cadeglioppi',
+  emerald: 'bg-emerald-soft text-emerald',
+  ruby: 'bg-ruby-soft text-ruby',
+  violet: 'bg-violet-soft text-violet',
 };
 
 export function Badge({ tone = 'neutral', children, className, icon }: { tone?: Tone; children: ReactNode; className?: string; icon?: ReactNode }) {
@@ -35,6 +38,6 @@ export function ParishBadge({ parish, className }: { parish?: string; className?
 
 export function CategoryBadge({ category }: { category?: string }) {
   if (!category) return null;
-  const tone: Tone = category === 'Urgente' ? 'danger' : category === 'Notizia' ? 'primary' : category === 'Riflessione' ? 'gold' : 'neutral';
+  const tone: Tone = category === 'Urgente' ? 'ruby' : category === 'Notizia' ? 'primary' : category === 'Riflessione' ? 'violet' : 'emerald';
   return <Badge tone={tone}>{category}</Badge>;
 }

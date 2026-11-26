@@ -113,7 +113,7 @@ function CommunityHome() {
             <Card className="divide-y divide-line overflow-hidden">
               {groups.map((g) => (
                 <a key={g.id} href={`#${routes.group(g.id)}`} className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-surface-2">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft font-serif font-semibold text-primary">{g.name.charAt(0)}</span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-soft to-primary-soft font-serif font-semibold text-violet">{g.name.charAt(0)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold text-ink">{g.name}</span>
                     <span className="block truncate text-xs text-muted">{g.description || g.parish}</span>
@@ -160,7 +160,7 @@ function GroupDetail({ id }: { id: string }) {
       <Card className="relative mb-10 overflow-hidden p-6 sm:p-8">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gold-soft blur-2xl" />
         <div className="relative flex items-start gap-5">
-          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary font-serif text-3xl font-semibold text-on-primary">{group.name.charAt(0)}</span>
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-vetrata font-serif text-3xl font-semibold text-gold-bright ring-1 ring-white/10">{group.name.charAt(0)}</span>
           <div className="min-w-0">
             <ParishBadge parish={group.parish} />
             <h1 className="mt-2 text-3xl font-semibold">{group.name}</h1>

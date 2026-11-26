@@ -1,58 +1,79 @@
 @import "tailwindcss";
 
 /*
- * Design system "Mia Chiesa"
- * Palette calda ed editoriale: avorio, blu mariano, oro liturgico.
- * Tutti i colori sono token semantici che cambiano automaticamente in modalità scura.
+ * Design system "Mia Chiesa" · tema VETRATA
+ * Ispirato alle vetrate delle chiese: blu notte, smeraldo, rubino, viola e oro
+ * su superfici di vetro smerigliato. Tutti i colori sono token semantici che
+ * cambiano automaticamente in modalità scura.
  */
 @theme {
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Manrope Variable", "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: "Fraunces Variable", "Fraunces", ui-serif, Georgia, serif;
 
-  --color-bg: #faf7f2;
+  --color-bg: #f3f5fb;
   --color-surface: #ffffff;
-  --color-surface-2: #f3eee6;
-  --color-surface-3: #ebe4d8;
-  --color-line: #e5ddd0;
-  --color-line-strong: #d3c8b6;
+  --color-surface-2: #eef1f8;
+  --color-surface-3: #e3e8f3;
+  --color-line: #dfe4f0;
+  --color-line-strong: #c7cfe3;
 
-  --color-ink: #1c1917;
-  --color-ink-2: #44403c;
-  --color-muted: #78716c;
-  --color-subtle: #a8a29e;
+  --color-ink: #0f1430;
+  --color-ink-2: #343b5c;
+  --color-muted: #5f6787;
+  --color-subtle: #959cb7;
 
-  --color-primary: #1f3a68;
-  --color-primary-hover: #182e54;
-  --color-primary-soft: #e6ecf5;
+  /* blu notte */
+  --color-primary: #1e2a78;
+  --color-primary-hover: #17205f;
+  --color-primary-soft: #e6e9fa;
   --color-on-primary: #ffffff;
 
-  --color-gold: #b8862b;
-  --color-gold-bright: #e2b65a;
-  --color-gold-soft: #f7edd6;
+  /* oro (gold = leggibile su chiaro, gold-bright = decorativo) */
+  --color-gold: #a8760f;
+  --color-gold-bright: #e8b04a;
+  --color-gold-soft: #fbf0d9;
 
-  --color-success: #2f7a4f;
-  --color-success-soft: #e3f1e8;
-  --color-warning: #a8620f;
-  --color-warning-soft: #fbeedb;
-  --color-danger: #b42318;
-  --color-danger-soft: #fbe6e4;
+  /* i vetri colorati */
+  --color-emerald: #0e8a6a;
+  --color-emerald-soft: #dcf3eb;
+  --color-ruby: #b3243c;
+  --color-ruby-soft: #fbe3e8;
+  --color-violet: #6b3fc6;
+  --color-violet-soft: #eee7fb;
 
-  --color-oppeano: #2b5ea8;
-  --color-oppeano-soft: #e5eef9;
-  --color-cadeglioppi: #a45a17;
-  --color-cadeglioppi-soft: #f8ebdc;
+  --color-success: #0e8a6a;
+  --color-success-soft: #dcf3eb;
+  --color-warning: #a35f00;
+  --color-warning-soft: #fdefd9;
+  --color-danger: #b3243c;
+  --color-danger-soft: #fbe3e8;
+
+  --color-oppeano: #0e7c60;
+  --color-oppeano-soft: #dcf3eb;
+  --color-cadeglioppi: #6b3fc6;
+  --color-cadeglioppi-soft: #eee7fb;
+
+  /* colori fissi della "notte" (sidebar, hero): uguali nei due temi */
+  --color-night: #0b1033;
+  --color-night-2: #141b4d;
 
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
   --radius-3xl: 1.75rem;
 
-  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 4px 16px -4px rgb(28 25 23 / 0.06);
-  --shadow-float: 0 8px 32px -8px rgb(28 25 23 / 0.18), 0 2px 6px rgb(28 25 23 / 0.06);
+  --shadow-card: 0 1px 2px rgb(15 20 48 / 0.04), 0 8px 24px -10px rgb(30 42 120 / 0.14);
+  --shadow-float: 0 18px 48px -14px rgb(30 42 120 / 0.32), 0 3px 8px rgb(15 20 48 / 0.06);
+  --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.5) inset, 0 10px 30px -12px rgb(107 63 198 / 0.45);
 
   --animate-shimmer: shimmer 1.6s linear infinite;
   @keyframes shimmer {
     from { background-position: -400px 0; }
     to { background-position: 400px 0; }
+  }
+  --animate-drift: drift 18s ease-in-out infinite alternate;
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(3%, -4%, 0) scale(1.08); }
   }
 }
 
@@ -63,34 +84,41 @@
 
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --color-bg: #14120f;
-    --color-surface: #1d1a16;
-    --color-surface-2: #26221d;
-    --color-surface-3: #302b25;
-    --color-line: #34302a;
-    --color-line-strong: #4a443b;
-    --color-ink: #f5f1ea;
-    --color-ink-2: #d9d2c6;
-    --color-muted: #a39b8f;
-    --color-subtle: #7a7268;
-    --color-primary: #8fb0e6;
-    --color-primary-hover: #a9c3ee;
-    --color-primary-soft: #1f2a3d;
-    --color-on-primary: #0f1a2e;
-    --color-gold: #e2b65a;
-    --color-gold-soft: #3a2f1a;
-    --color-success: #6cc495;
-    --color-success-soft: #1a2e22;
-    --color-warning: #f0b25e;
-    --color-warning-soft: #3a2a14;
-    --color-danger: #f2877d;
-    --color-danger-soft: #3a1c1a;
-    --color-oppeano: #8fb4ee;
-    --color-oppeano-soft: #1e2a3c;
-    --color-cadeglioppi: #eab17a;
-    --color-cadeglioppi-soft: #3a2a1b;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 16px -4px rgb(0 0 0 / 0.4);
-    --shadow-float: 0 8px 32px -8px rgb(0 0 0 / 0.6);
+    --color-bg: #080c24;
+    --color-surface: #111739;
+    --color-surface-2: #182046;
+    --color-surface-3: #212a56;
+    --color-line: #252e5c;
+    --color-line-strong: #39437c;
+    --color-ink: #eef1ff;
+    --color-ink-2: #c9ceea;
+    --color-muted: #959cc2;
+    --color-subtle: #6a719b;
+    --color-primary: #a9b6ff;
+    --color-primary-hover: #c3ccff;
+    --color-primary-soft: #1c2562;
+    --color-on-primary: #0b1033;
+    --color-gold: #f0c062;
+    --color-gold-soft: #35290e;
+    --color-emerald: #4fd1a8;
+    --color-emerald-soft: #0f2e2a;
+    --color-ruby: #ff7a90;
+    --color-ruby-soft: #3a1426;
+    --color-violet: #c3a6ff;
+    --color-violet-soft: #261a4c;
+    --color-success: #4fd1a8;
+    --color-success-soft: #0f2e2a;
+    --color-warning: #ffb85c;
+    --color-warning-soft: #3a2810;
+    --color-danger: #ff7a90;
+    --color-danger-soft: #3a1426;
+    --color-oppeano: #4fd1a8;
+    --color-oppeano-soft: #0f2e2a;
+    --color-cadeglioppi: #c3a6ff;
+    --color-cadeglioppi-soft: #261a4c;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px -10px rgb(0 0 0 / 0.5);
+    --shadow-float: 0 18px 48px -14px rgb(0 0 0 / 0.7);
+    --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.06) inset, 0 10px 30px -12px rgb(169 182 255 / 0.35);
   }
 
   html {
@@ -100,15 +128,23 @@
 
   html, body {
     @apply bg-bg text-ink font-sans antialiased;
-    font-feature-settings: "cv11", "ss01";
   }
 
-  ::selection { @apply bg-gold-soft text-ink; }
+  /* Luce colorata da vetrata sullo sfondo della pagina */
+  body {
+    background-image:
+      radial-gradient(60rem 40rem at 110% -10%, color-mix(in oklab, var(--color-violet) 12%, transparent), transparent 60%),
+      radial-gradient(50rem 36rem at -10% 30%, color-mix(in oklab, var(--color-emerald) 9%, transparent), transparent 60%),
+      radial-gradient(44rem 30rem at 70% 110%, color-mix(in oklab, var(--color-ruby) 7%, transparent), transparent 60%);
+    background-attachment: fixed;
+  }
 
-  h1, h2, h3, h4 { @apply font-serif tracking-tight text-ink; }
+  ::selection { @apply bg-violet-soft text-ink; }
+
+  h1, h2, h3, h4 { @apply font-serif tracking-tight text-ink; font-variation-settings: "SOFT" 30; }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary;
+    @apply outline-2 outline-offset-2 outline-violet;
   }
 
   /* Scrollbar sottile e discreta (non nascosta: serve all'accessibilità) */
@@ -140,4 +176,33 @@
 
 @utility prose-reading {
   @apply font-serif text-[1.075rem] leading-[1.8] text-ink-2;
+}
+
+/* Vetro smerigliato: superfici semi-trasparenti che lasciano passare la luce colorata */
+@utility glass {
+  background-color: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+}
+
+/* Fondo "notte" con i riflessi della vetrata: hero, sidebar, pannelli in evidenza */
+@utility bg-vetrata {
+  background-color: var(--color-night);
+  background-image:
+    radial-gradient(38rem 26rem at 85% -10%, rgb(107 63 198 / 0.55), transparent 60%),
+    radial-gradient(30rem 22rem at 0% 100%, rgb(14 138 106 / 0.45), transparent 60%),
+    radial-gradient(26rem 18rem at 100% 100%, rgb(179 36 60 / 0.4), transparent 60%),
+    linear-gradient(160deg, #141b4d 0%, #0b1033 70%);
+}
+
+/* Gradiente principale dei pulsanti e dei dettagli in evidenza */
+@utility bg-gradient-primary {
+  background-image: linear-gradient(135deg, #2a3a9e 0%, #1e2a78 45%, #4a2a9e 100%);
+}
+
+@utility text-gradient {
+  background-image: linear-gradient(100deg, #f3c86a 0%, #e8b04a 40%, #ff9fb0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
