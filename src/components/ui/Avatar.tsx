@@ -6,7 +6,7 @@ export function Avatar({ src, name, size = 40, className }: { src?: string | nul
   const [failed, setFailed] = useState(false);
   return (
     <span
-      className={cn('inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft font-semibold text-primary', className)}
+      className={cn('inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-soft to-primary-soft font-bold text-primary', className)}
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
       {src && !failed ? (

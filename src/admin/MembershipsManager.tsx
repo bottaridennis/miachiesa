@@ -41,7 +41,7 @@ export default function MembershipsManager() {
         <SkeletonList count={3} className="h-16" />
       ) : (
         <>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-subtle">
+          <h3 className="mb-3 flex items-center gap-2 font-sans text-xs font-bold uppercase tracking-[0.16em] text-subtle">
             In attesa {pending.length > 0 && <span className="rounded-full bg-danger px-1.5 text-[11px] text-white">{pending.length}</span>}
           </h3>
           {pending.length === 0 ? (
@@ -63,7 +63,7 @@ export default function MembershipsManager() {
             </ListCard>
           )}
 
-          <h3 className="mb-3 mt-10 text-sm font-bold uppercase tracking-wider text-subtle">Utenti abilitati ({verified.length})</h3>
+          <h3 className="mb-3 mt-10 font-sans text-xs font-bold uppercase tracking-[0.16em] text-subtle">Utenti abilitati ({verified.length})</h3>
           {verified.length === 0 ? (
             <EmptyState className="py-8" title="Nessun utente abilitato" />
           ) : (

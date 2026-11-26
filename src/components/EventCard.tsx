@@ -9,9 +9,9 @@ import { cn } from '../lib/cn';
 export function DateTile({ date, className }: { date: string; className?: string }) {
   const d = parseISODate(date);
   return (
-    <div className={cn('flex w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary-soft py-2.5 text-primary', className)}>
-      <span className="text-[11px] font-bold uppercase tracking-wider">{d ? d.toLocaleDateString('it-IT', { month: 'short' }).replace('.', '') : '—'}</span>
-      <span className="font-serif text-2xl font-semibold leading-none">{d ? d.getDate() : '?'}</span>
+    <div className={cn('bg-vetrata flex w-16 shrink-0 flex-col items-center justify-center rounded-2xl py-2.5 text-white ring-1 ring-white/10', className)}>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-gold-bright">{d ? d.toLocaleDateString('it-IT', { month: 'short' }).replace('.', '') : '—'}</span>
+      <span className="font-serif text-2xl font-semibold leading-none text-white">{d ? d.getDate() : '?'}</span>
       <span className="mt-0.5 text-[10px] font-semibold uppercase opacity-75">{d ? d.toLocaleDateString('it-IT', { weekday: 'short' }).replace('.', '') : ''}</span>
     </div>
   );

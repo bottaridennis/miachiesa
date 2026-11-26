@@ -9,6 +9,7 @@ import { nextMass, nextMassLabel } from '../lib/format';
 import { routes } from '../lib/router';
 import { cn } from '../lib/cn';
 import { NoticeCard } from '../components/NoticeCard';
+import { RoseWindow } from '../components/RoseWindow';
 import { EventCard } from '../components/EventCard';
 import { Card } from '../components/ui/Card';
 import { EmptyState, Skeleton, SkeletonList } from '../components/ui/Feedback';
@@ -64,10 +65,10 @@ export default function HomeView() {
   const firstName = user?.displayName?.split(' ')[0];
 
   const quick = [
-    { href: routes.liturgy, icon: BookOpen, label: 'Liturgia', sub: 'Letture e Messe' },
-    { href: routes.registrations, icon: ClipboardList, label: 'Iscrizioni', sub: 'Moduli online' },
-    { href: routes.services, icon: MessageSquareText, label: 'Segreteria', sub: 'Certificati' },
-    { href: routes.donations, icon: HandHeart, label: 'Donazioni', sub: 'Sostienici' },
+    { href: routes.liturgy, icon: BookOpen, label: 'Liturgia', sub: 'Letture e Messe', glass: 'from-[#13a37e] to-[#0b6e56]' },
+    { href: routes.registrations, icon: ClipboardList, label: 'Iscrizioni', sub: 'Moduli online', glass: 'from-[#8a4fe0] to-[#5a2fb0]' },
+    { href: routes.services, icon: MessageSquareText, label: 'Segreteria', sub: 'Certificati', glass: 'from-[#3c6df0] to-[#1e2a78]' },
+    { href: routes.donations, icon: HandHeart, label: 'Donazioni', sub: 'Sostienici', glass: 'from-[#e04a66] to-[#a01d36]' },
   ];
 
   return (
@@ -77,32 +78,31 @@ export default function HomeView() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative isolate overflow-hidden rounded-3xl bg-[#0f1d36] text-white shadow-float"
+        className="bg-vetrata relative isolate overflow-hidden rounded-[2rem] text-white shadow-float ring-1 ring-white/10"
       >
         {config.heroImageUrl ? (
-          <img src={config.heroImageUrl} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45" onError={(e) => (e.currentTarget.style.display = 'none')} />
+          <>
+            <img src={config.heroImageUrl} alt="" className="absolute inset-0 -z-10 h-full w-full object-cover opacity-50" onError={(e) => (e.currentTarget.style.display = 'none')} />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0b1033] via-[#0b1033]/75 to-[#0b1033]/10" />
+          </>
         ) : (
-          // Decorazione disegnata in CSS/SVG: nessuna immagine caricata da siti esterni
-          <svg aria-hidden className="absolute inset-0 -z-10 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="hero-cross" width="56" height="56" patternUnits="userSpaceOnUse">
-                <path d="M28 18v20M21 25h14" stroke="#e2b65a" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hero-cross)" />
-          </svg>
+          <>
+            {/* Raggi di luce colorata che entrano dalla vetrata */}
+            <div className="pointer-events-none absolute -right-40 -top-40 -z-10 h-[46rem] w-[46rem] animate-drift rounded-full opacity-60 blur-2xl [background:conic-gradient(from_200deg,transparent_0deg,rgb(138_79_224/0.45)_30deg,transparent_60deg,rgb(19_163_126/0.35)_95deg,transparent_130deg,rgb(210_58_85/0.35)_170deg,transparent_210deg)]" />
+            {/* Rosone (solo SVG: nessuna immagine esterna) */}
+            <RoseWindow className="pointer-events-none absolute -right-20 -top-20 -z-10 h-[220px] w-[220px] opacity-30 drop-shadow-[0_0_40px_rgba(138,79,224,0.55)] sm:-right-10 sm:top-1/2 sm:h-[420px] sm:w-[420px] sm:-translate-y-1/2 sm:opacity-95" />
+          </>
         )}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#0b1528] via-[#0f1d36]/80 to-[#0f1d36]/20" />
-        <div className="absolute -right-24 -top-24 -z-10 h-72 w-72 rounded-full bg-gold-bright/20 blur-3xl" />
-        <div className="flex min-h-[340px] flex-col justify-end p-6 sm:min-h-[400px] sm:p-10">
-          <p className="mb-3 text-sm font-medium text-white/70">
+        <div className="flex min-h-[360px] flex-col justify-end p-6 sm:min-h-[440px] sm:p-10 sm:pr-[400px] lg:p-12 lg:pr-[440px]">
+          <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs font-semibold text-white/80 backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-gold-bright" />
             {greeting()}
             {firstName ? `, ${firstName}` : ''} ·{' '}
             {new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <h1 className="max-w-2xl font-serif text-4xl font-semibold leading-[1.05] text-white sm:text-6xl">
+          <h1 className="max-w-2xl font-serif text-[2.6rem] font-semibold leading-[1.02] text-white sm:text-6xl">
             Unità Pastorale
-            <span className="block text-[0.66em] text-gold-bright sm:text-[1em]">Oppeano · Ca' degli Oppi</span>
+            <span className="text-gradient block pb-1 text-[0.66em] italic sm:text-[0.9em]">Oppeano · Ca' degli Oppi</span>
           </h1>
           {config.welcomeMessage && <p className="mt-4 max-w-lg text-base text-white/80 sm:text-lg">{config.welcomeMessage}</p>}
 
@@ -110,7 +110,7 @@ export default function HomeView() {
             {massesLoading ? (
               <Skeleton className="h-14 w-72 !bg-white/10" />
             ) : next ? (
-              <a href={`#${routes.liturgy}`} className="group flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md transition-colors hover:bg-white/15">
+              <a href={`#${routes.liturgy}`} className="group flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.08] px-4 py-3 shadow-[inset_0_1px_0_rgb(255_255_255/0.1)] backdrop-blur-md transition-colors hover:bg-white/[0.14]">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
@@ -123,7 +123,7 @@ export default function HomeView() {
                 <ArrowRight size={16} className="ml-1 shrink-0 opacity-60 transition-transform group-hover:translate-x-0.5" />
               </a>
             ) : (
-              <a href={`#${routes.liturgy}`} className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-[#0f1d36]">
+              <a href={`#${routes.liturgy}`} className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-br from-[#f3c86a] to-[#e8a13a] px-5 py-3 text-sm font-bold text-[#2a1f0a] shadow-lg">
                 <Clock size={17} /> Orari delle Messe
               </a>
             )}
@@ -143,9 +143,9 @@ export default function HomeView() {
           <a
             key={q.href}
             href={`#${q.href}`}
-            className="group flex flex-col items-center gap-2 rounded-2xl border border-line bg-surface p-3 text-center shadow-card transition-all hover:-translate-y-0.5 hover:shadow-float sm:flex-row sm:p-4 sm:text-left"
+            className="glass group flex flex-col items-center gap-2 rounded-2xl border border-white/70 p-3 text-center shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-float dark:border-white/[0.06] sm:flex-row sm:p-4 sm:text-left"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3),0_6px_16px_-6px_rgb(0_0_0/0.35)] transition-transform group-hover:scale-110 ${q.glass}`}>
               <q.icon size={21} />
             </span>
             <span className="min-w-0">
@@ -172,7 +172,7 @@ export default function HomeView() {
                   onClick={() => setFilter(f)}
                   className={cn(
                     'whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors',
-                    filter === f ? 'bg-ink text-bg' : 'bg-surface-2 text-ink-2 hover:bg-surface-3',
+                    filter === f ? 'bg-gradient-primary text-white shadow-glow' : 'glass border border-line text-ink-2 hover:border-violet/40',
                   )}
                 >
                   {f}

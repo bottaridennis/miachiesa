@@ -152,40 +152,40 @@ function Router({ segments }: { segments: string[] }) {
   }
 }
 
-function UserBox() {
+function UserBox({ dark }: { dark?: boolean }) {
   const { user, loading, login, logout, isAdmin, profile } = useSession();
-  if (loading) return <div className="skeleton h-14 rounded-2xl" />;
+  if (loading) return <div className={cn('h-14 rounded-2xl', dark ? 'animate-pulse bg-white/10' : 'skeleton')} />;
   if (!user)
     return (
-      <div className="rounded-2xl border border-line bg-surface-2/60 p-4">
-        <p className="text-sm font-semibold text-ink">Entra nella comunità</p>
-        <p className="mb-3 mt-0.5 text-xs text-muted">Salva gli avvisi preferiti e gestisci le tue iscrizioni.</p>
-        <Button block size="sm" icon={<LogIn size={16} />} onClick={login}>
+      <div className={cn('rounded-2xl border p-4', dark ? 'border-white/10 bg-white/[0.06]' : 'border-line bg-surface-2/60')}>
+        <p className={cn('text-sm font-semibold', dark ? 'text-white' : 'text-ink')}>Entra nella comunità</p>
+        <p className={cn('mb-3 mt-0.5 text-xs', dark ? 'text-white/60' : 'text-muted')}>Salva gli avvisi preferiti e gestisci le tue iscrizioni.</p>
+        <Button block size="sm" variant={dark ? 'gold' : 'primary'} icon={<LogIn size={16} />} onClick={login}>
           Accedi con Google
         </Button>
-        <LoginPrivacyNote className="mt-2" />
+        <LoginPrivacyNote className={cn('mt-2', dark && '!text-white/50 [&_a]:!text-gold-bright')} />
       </div>
     );
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-2.5">
+    <div className={cn('flex items-center gap-3 rounded-2xl border p-2.5', dark ? 'border-white/10 bg-white/[0.06]' : 'border-line bg-surface')}>
       <button onClick={() => navigate(routes.account)} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left">
-        <Avatar src={user.photoURL} name={profile?.name || user.displayName} size={38} />
+        <Avatar src={user.photoURL} name={profile?.name || user.displayName} size={38} className={dark ? 'ring-2 ring-white/15' : ''} />
         <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-ink">{user.displayName || user.email}</span>
-          <span className="flex items-center gap-1 truncate text-xs text-muted">
-            {isAdmin && <Shield size={11} className="text-gold" />}
+          <span className={cn('block truncate text-sm font-semibold', dark ? 'text-white' : 'text-ink')}>{user.displayName || user.email}</span>
+          <span className={cn('flex items-center gap-1 truncate text-xs', dark ? 'text-white/60' : 'text-muted')}>
+            {isAdmin && <Shield size={11} className="text-gold-bright" />}
             {isAdmin ? 'Amministratore' : 'Area personale'}
           </span>
         </span>
       </button>
-      <button onClick={logout} className="rounded-lg p-2 text-muted hover:bg-surface-2 hover:text-ink" aria-label="Esci" title="Esci">
+      <button onClick={logout} className={cn('rounded-lg p-2', dark ? 'text-white/60 hover:bg-white/10 hover:text-white' : 'text-muted hover:bg-surface-2 hover:text-ink')} aria-label="Esci" title="Esci">
         <LogOut size={17} />
       </button>
     </div>
   );
 }
 
-function ThemeSwitch() {
+function ThemeSwitch({ dark }: { dark?: boolean }) {
   const [pref, setPref] = useTheme();
   const opts: { v: ThemePref; icon: typeof Sun; label: string }[] = [
     { v: 'light', icon: Sun, label: 'Chiaro' },
@@ -193,7 +193,7 @@ function ThemeSwitch() {
     { v: 'dark', icon: Moon, label: 'Scuro' },
   ];
   return (
-    <div className="flex rounded-xl bg-surface-2 p-1" role="radiogroup" aria-label="Tema">
+    <div className={cn('flex rounded-xl p-1', dark ? 'bg-white/[0.07]' : 'bg-surface-2')} role="radiogroup" aria-label="Tema">
       {opts.map((o) => (
         <button
           key={o.v}
@@ -201,7 +201,12 @@ function ThemeSwitch() {
           aria-checked={pref === o.v}
           title={o.label}
           onClick={() => setPref(o.v)}
-          className={cn('flex flex-1 items-center justify-center rounded-lg py-1.5 transition-all', pref === o.v ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink')}
+          className={cn(
+            'flex flex-1 items-center justify-center rounded-lg py-1.5 transition-all',
+            dark
+              ? pref === o.v ? 'bg-white/15 text-white shadow-sm' : 'text-white/50 hover:text-white'
+              : pref === o.v ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink',
+          )}
         >
           <o.icon size={15} />
           <span className="sr-only">{o.label}</span>
@@ -211,56 +216,54 @@ function ThemeSwitch() {
   );
 }
 
+/** Voce della sidebar: sul fondo "notte" la voce attiva è un vetro illuminato con il filo d'oro a sinistra */
+function SideLink({ href, active, icon: Icon, children }: { href: string; active: boolean; icon: typeof Sun; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-semibold transition-all',
+        active ? 'bg-white/[0.12] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]' : 'text-white/65 hover:bg-white/[0.06] hover:text-white',
+      )}
+    >
+      {active && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-gradient-to-b from-[#f3c86a] to-[#ff9fb0]" />}
+      <Icon size={19} className={active ? 'text-gold-bright' : 'text-white/45 group-hover:text-white/80'} />
+      {children}
+    </a>
+  );
+}
+
 function Sidebar({ path, onSearch }: { path: string; onSearch: () => void }) {
   const { user } = useSession();
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-line bg-surface/70 backdrop-blur-xl md:flex">
-      <div className="px-5 pb-4 pt-6">
+    <aside className="bg-vetrata fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-white/5 text-white md:flex">
+      <div className="px-5 pb-5 pt-6">
         <a href="#/" className="block rounded-xl">
-          <Brand />
+          <Brand inverted />
         </a>
       </div>
       <div className="px-4 pb-3">
-        <SearchTrigger onOpen={onSearch} />
+        <SearchTrigger onOpen={onSearch} dark />
       </div>
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2" aria-label="Navigazione principale">
-        {NAV_ITEMS.map((item) => {
-          const active = isActive(path, item.path);
-          return (
-            <a
-              key={item.path}
-              href={`#${item.path}`}
-              aria-current={active ? 'page' : undefined}
-              className={cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors',
-                active ? 'bg-primary-soft text-primary' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
-              )}
-            >
-              <item.icon size={19} className={active ? 'text-primary' : 'text-muted group-hover:text-ink'} />
-              {item.label}
-            </a>
-          );
-        })}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Navigazione principale">
+        {NAV_ITEMS.map((item) => (
+          <SideLink key={item.path} href={`#${item.path}`} active={isActive(path, item.path)} icon={item.icon}>
+            {item.label}
+          </SideLink>
+        ))}
         {user && (
           <>
-            <div className="mx-3 my-3 border-t border-line" />
-            <a
-              href={`#${routes.account}`}
-              aria-current={path.startsWith('/area') ? 'page' : undefined}
-              className={cn(
-                'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] font-medium transition-colors',
-                path.startsWith('/area') ? 'bg-primary-soft text-primary' : 'text-ink-2 hover:bg-surface-2 hover:text-ink',
-              )}
-            >
-              <UserRound size={19} className={path.startsWith('/area') ? 'text-primary' : 'text-muted'} />
+            <div className="mx-3 my-3 border-t border-white/10" />
+            <SideLink href={`#${routes.account}`} active={path.startsWith('/area')} icon={UserRound}>
               Area personale
-            </a>
+            </SideLink>
           </>
         )}
       </nav>
       <div className="space-y-3 p-4">
-        <ThemeSwitch />
-        <UserBox />
+        <ThemeSwitch dark />
+        <UserBox dark />
       </div>
     </aside>
   );
@@ -269,7 +272,7 @@ function Sidebar({ path, onSearch }: { path: string; onSearch: () => void }) {
 function MobileHeader({ onSearch }: { onSearch: () => void }) {
   const { user, login, loading } = useSession();
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:hidden">
+    <header className="glass sticky top-0 z-40 border-b border-white/60 pt-[env(safe-area-inset-top)] dark:border-white/5 md:hidden">
       <div className="flex h-16 items-center justify-between gap-2 px-4">
         <a href="#/" className="min-w-0">
           <Brand />
@@ -297,7 +300,7 @@ function MobileHeader({ onSearch }: { onSearch: () => void }) {
 function MobileTabBar({ path, onMore, moreOpen }: { path: string; onMore: () => void; moreOpen: boolean }) {
   const moreActive = moreOpen || MOBILE_MORE.some((m) => isActive(path, m.path)) || path.startsWith('/area');
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-surface/90 pb-safe backdrop-blur-xl md:hidden" aria-label="Navigazione">
+    <nav className="glass fixed inset-x-0 bottom-0 z-50 border-t border-white/60 pb-safe shadow-[0_-8px_30px_-12px_rgb(30_42_120/0.18)] dark:border-white/5 md:hidden" aria-label="Navigazione">
       <div className="mx-auto grid h-16 max-w-md grid-cols-5">
         {MOBILE_TABS.map((item) => {
           const active = isActive(path, item.path);
@@ -308,14 +311,14 @@ function MobileTabBar({ path, onMore, moreOpen }: { path: string; onMore: () => 
               aria-current={active ? 'page' : undefined}
               className={cn('relative flex flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors', active ? 'text-primary' : 'text-muted')}
             >
-              {active && <motion.span layoutId="tab-pill" className="absolute top-1.5 h-8 w-14 rounded-full bg-primary-soft" transition={{ type: 'spring', damping: 30, stiffness: 400 }} />}
+              {active && <motion.span layoutId="tab-pill" className="absolute top-1.5 h-8 w-14 rounded-full bg-gradient-to-r from-primary-soft to-violet-soft" transition={{ type: 'spring', damping: 30, stiffness: 400 }} />}
               <item.icon size={21} className="relative" strokeWidth={active ? 2.3 : 2} />
               <span className="relative">{item.label}</span>
             </a>
           );
         })}
         <button onClick={onMore} className={cn('relative flex flex-col items-center justify-center gap-1 text-[11px] font-semibold', moreActive ? 'text-primary' : 'text-muted')} aria-haspopup="dialog">
-          {moreActive && <span className="absolute top-1.5 h-8 w-14 rounded-full bg-primary-soft" />}
+          {moreActive && <span className="absolute top-1.5 h-8 w-14 rounded-full bg-gradient-to-r from-primary-soft to-violet-soft" />}
           <LayoutGrid size={21} className="relative" />
           <span className="relative">Altro</span>
         </button>
@@ -340,7 +343,7 @@ function MoreSheet({ open, onClose, path }: { open: boolean; onClose: () => void
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => info.offset.y > 80 && onClose()}
-            className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-line bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-float"
+            className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-white/60 bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-float dark:border-white/5"
           >
             <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-line-strong" />
             <div className="mb-4 flex items-center justify-between">
@@ -357,9 +360,11 @@ function MoreSheet({ open, onClose, path }: { open: boolean; onClose: () => void
                 <a
                   key={item.path}
                   href={`#${item.path}`}
-                  className={cn('flex flex-col gap-3 rounded-2xl border p-4 transition-colors', isActive(path, item.path) ? 'border-primary/30 bg-primary-soft' : 'border-line bg-surface-2/50')}
+                  className={cn('flex flex-col gap-3 rounded-2xl border p-4 transition-colors', isActive(path, item.path) ? 'border-violet/30 bg-violet-soft' : 'border-line bg-surface-2/50')}
                 >
-                  <item.icon size={22} className="text-primary" />
+                  <span className="bg-vetrata flex h-10 w-10 items-center justify-center rounded-xl text-gold-bright">
+                    <item.icon size={20} />
+                  </span>
                   <span>
                     <span className="block text-sm font-semibold text-ink">{item.label}</span>
                     <span className="block text-xs text-muted">{item.description}</span>

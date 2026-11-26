@@ -122,8 +122,8 @@ export default function AccountView({ section }: { section?: string }) {
   );
 
   const Tile = ({ s }: { s: Section }) => (
-    <a href={`#${routes.accountSection(s.id)}`} className="group relative flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-float">
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
+    <a href={`#${routes.accountSection(s.id)}`} className="glass group relative flex flex-col gap-3 rounded-2xl border border-white/70 p-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-float dark:border-white/[0.06]">
+      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary transition-all group-hover:bg-gradient-primary group-hover:text-white group-hover:shadow-glow">
         <s.icon size={20} />
       </span>
       <span>
@@ -186,7 +186,7 @@ export default function AccountView({ section }: { section?: string }) {
                   </div>
                 </div>
               </header>
-              <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-subtle">Personale</h2>
+              <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.16em] text-subtle">Personale</h2>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {userSections.map((s) => (
                   <Fragment key={s.id}>{Tile({ s })}</Fragment>
@@ -194,7 +194,7 @@ export default function AccountView({ section }: { section?: string }) {
               </div>
               {adminSections.length > 0 && (
                 <>
-                  <h2 className="mb-3 mt-10 text-sm font-bold uppercase tracking-wider text-subtle">Amministrazione</h2>
+                  <h2 className="mb-3 mt-10 font-sans text-xs font-bold uppercase tracking-[0.16em] text-subtle">Amministrazione</h2>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {adminSections.map((s) => (
                       <Fragment key={s.id}>{Tile({ s })}</Fragment>
